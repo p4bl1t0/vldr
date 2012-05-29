@@ -11,8 +11,8 @@ Usage
 In required field use "vldr-required" class. Works on 
 
 + input[type=text]
-+ input[type=checkbox] (Make checked required)
-+ input[type=radio] (Made checked required for a radio in a name group)
++ input[type=checkbox] - Make checked required)
++ input[type=radio] - (Made checked required for a radio in a name group)
 + select
 + textarea
 
