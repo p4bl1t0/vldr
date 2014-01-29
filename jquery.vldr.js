@@ -88,19 +88,19 @@
                     whereToInsert = attrWhere;
                 }
 			    var attrMsg = $input.attr('data-vldr-required-msg');
-			    if ((typeof attrMsg !== 'undefined' && attrMsg !== false) && $input.parent().find('.vldr-error-msg').length == 0) {
+			    if ((typeof attrMsg !== 'undefined' && attrMsg !== false)) {
                     var msg = attrMsg;
                     var $msg = $(document.createElement('div')).html(msg).addClass('vldr-error-msg');
-                    if(whereToInsert === 'after') {
+                    if(whereToInsert === 'after' && $input.next(".vldr-error-msg").length === 0) {
                         $input.after($msg);
                     } else {
-                        if(whereToInsert === 'before') {
+                        if(whereToInsert === 'before' && $input.prev(".vldr-error-msg").length === 0) {
                             $input.before($msg);
                         } else {
-                            if(whereToInsert === 'append'){
+                            if(whereToInsert === 'append' && $input.parent.find(".vldr-error-msg").length === 0){
                                 $input.parent().append($msg);
                             } else {
-                                if(whereToInsert === 'prepend'){
+                                if(whereToInsert === 'prepend' && $input.parent.find(".vldr-error-msg").length === 0){
                                     $input.parent().prepend($msg);
                                 } else {
                                     //Finally 'inside'
@@ -237,19 +237,19 @@
                     }
                     //Tengo que fijarme si tiene mensaje y lo muestro
 			        var attr = $input.attr('data-vldr-pattern-msg');
-			        if ((typeof attr !== 'undefined' && attr !== false) && $input.parent().find('.vldr-error-msg').length == 0) {
+			        if ((typeof attr !== 'undefined' && attr !== false)) {
                         var msg = $input.attr('data-vldr-pattern-msg');
                         var $msg = $(document.createElement('div')).html(msg).addClass('vldr-error-msg');
-                        if(whereToInsert === 'after') {
+                        if(whereToInsert === 'after' && $input.next(".vldr-error-msg").length === 0) {
                             $input.after($msg);
                         } else {
-                            if(whereToInsert === 'before') {
+                            if(whereToInsert === 'before' && $input.prev(".vldr-error-msg").length === 0) {
                                 $input.before($msg);
                             } else {
-                                if(whereToInsert === 'append'){
+                                if(whereToInsert === 'append' && $input.parent.find(".vldr-error-msg").length === 0){
                                     $input.parent().append($msg);
                                 } else {
-                                    if(whereToInsert === 'prepend'){
+                                    if(whereToInsert === 'prepend' && $input.parent.find(".vldr-error-msg").length === 0){
                                         $input.parent().prepend($msg);
                                     } else {
                                         //Este no puede ir inside, entonces AFTER
