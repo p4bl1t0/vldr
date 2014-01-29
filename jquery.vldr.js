@@ -1,7 +1,8 @@
 /*!
-* ClickOut jQuery Custom Event v0.2
-* @link http://efeunohelp.blogspot.com
+* jQuery vldr plugin
+* @link http://awar.com.ar
 * @author Pablo Botta
+* @description JavaScriptless validation plugin
 */
 
 ; (function ($) {
