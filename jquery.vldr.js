@@ -11,12 +11,14 @@
         if($form && $form != null){
             $form.submit(function(event){
                 var $thisForm = $(this);
-			    if(!(vldrRequireds($thisForm) & vldrPatterns($thisForm))){
+	        if(!(vldrRequireds($thisForm) & vldrPatterns($thisForm))){
                     event.preventDefault();
                     //Posiblemente Scroll to Error
                     return false;
+                } else {
+                	$form.trigger("vldrSuccess");
                 }
-		    });
+	     });
         }
     }
     function cbClear(){
@@ -158,7 +160,7 @@
 				var valor = $input.val();
 				re = new RegExp(patron);
 				if (re.test(valor)) {
-                    //Aca no debería pasar nada
+                    //Aca no deberï¿½a pasar nada
                     $input.parent().find('.vldr-error-msg').remove();
 				}
 				else {
