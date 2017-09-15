@@ -6,54 +6,61 @@
 */
 
 ; (function ($) {
-    //Variables
+    // Variables
     var triggerButton = null;
-    //Functions
+    var firstTime = true;
+    // Functions
     function validateForm() {
         var $form = null;
-        if($('.vldr-submit').length == 0){
+        if ($('.vldr-submit').length == 0){
             var $form = $('form');
         } else {
             var $form = $('.vldr-submit').parents('.vldr-form');
-            if($form.length == 0 || !$form.is('form')) {
+            if ($form.length == 0 || !$form.is('form')) {
                 $form = $btn.parents('form');
             }
         }
         return (vldrRequireds($form) & vldrPatterns($form));
     }
+
     function validateOnSubmit($form, checkTriggerButton) {
-        if($form && $form != null) {
-            if(!$form.is('form')) {
-                var $root = $form;
-                $form = $form.parents('form');
-            }
-            $form.submit(function(event) {
-                var proceed = false;
-                if(checkTriggerButton) {
-                    if(triggerButton != null && $(triggerButton).hasClass('vldr-submit')) {
+        if (firstTime) {
+            if ($form && $form != null) {
+                if (!$form.is('form')) {
+                    var $root = $form;
+                    $form = $form.parents('form');
+                }
+                $form.submit(function(event) {
+                    var proceed = false;
+                    if (checkTriggerButton) {
+                        if (triggerButton != null && $(triggerButton).hasClass('vldr-submit')) {
+                            proceed = true;
+                        }
+                    } else {
                         proceed = true;
                     }
-                } else {
-                    proceed = true;
-                }
-                if (proceed) {
-                    var $thisForm = $(this);
-                    if($root && $root != null && $root.length > 0) {
-                        $thisForm = $root;
+                    if (proceed) {
+                        var $thisForm = $(this);
+                        if ($root && $root != null && $root.length > 0) {
+                            $thisForm = $root;
+                        }
+                        if (!(vldrRequireds($thisForm) & vldrPatterns($thisForm))) {
+                            event.preventDefault();
+                            //Temporal scroll solution.
+                            $('html,body').scrollTop($('.vldr-input-error').offset().top - 100);
+                            return false;
+                        } else {
+                            $thisForm.trigger("vldrSuccess");
+                        }
                     }
-		    if(!(vldrRequireds($thisForm) & vldrPatterns($thisForm))){
-                        event.preventDefault();
-                        //Posiblemente Scroll to Error
-                        return false;
-                    } else {
-                    	$thisForm.trigger("vldrSuccess");
-                    }
-                }
-	    });
+                });
+            }
+            firstTime = false;
         }
     }
     function cbClear(){
         var $base = $(this);
+        $base.off('focus', cbClear);
 		if ($base.hasClass('vldr-input-error')) {
 			$base.removeClass('vldr-input-error');
 		}
@@ -67,9 +74,37 @@
             $base.attr('placeholder', $input.attr('placeholder').toString().remove(msg,''));
 		}
     }
+
+    function removeMessage($input) {
+        var whereToInsert = "after";
+        var attrWhere = $input.attr('data-vldr-msg-place');
+        if ((typeof attrWhere !== 'undefined' && attrWhere !== false)) {
+            whereToInsert = attrWhere;
+        }
+        var $toRemove = $input.siblings().filter('.vldr-error-msg');
+        if (whereToInsert === 'after') {
+            $toRemove = $input.next();
+        } else {
+            if(whereToInsert === 'before') {
+                $toRemove = $input.prev();
+            } else {
+                if(whereToInsert === 'append'){
+                    $toRemove = $input.children(":last");
+                } else {
+                    if(whereToInsert === 'prepend'){
+                        $toRemove = $input.children(":first");
+                    } 
+                }
+            }
+        }
+        if ($toRemove.hasClass('vldr-error-msg')) {
+            $toRemove.remove();
+        }    
+    }
+
     function vldrRequireds($form) {
 		var incomplete = false;
-        //Input text y SELECTs
+        //Input text y selects
 		$form.find("input.vldr-required,textarea.vldr-required,select.vldr-required").not('input[type=radio], input[type=checkbox], .vldr-hidden').each(function () {
 			var $input = $(this);
             var compareTo = ""; 
@@ -80,8 +115,7 @@
 			if ($input.val() === compareTo) {
 				incomplete = true;
 				$input.addClass("vldr-input-error");
-                //Tengo que fijarme si tiene mensaje y lo muestro
-                //data-vldr-msg-place == [after, before, append, prepend, inside]
+                // data-vldr-msg-place == [after, before, append, prepend, inside]
                 var whereToInsert = "after";
                 var attrWhere = $input.attr('data-vldr-msg-place');
                 if ((typeof attrWhere !== 'undefined' && attrWhere !== false)) {
@@ -115,8 +149,7 @@
                         }
                     }
                 }
-                //-------------------------------------------
-                //Obsoleto ?
+                // Out of use ?
                 var attrRqMsgInside = $input.attr('data-vldr-required-msg-inside');
 			    if ((typeof attrRqMsgInside !== 'undefined' && attrRqMsgInside !== false) && !$input.hasClass('vldr-input-error-inside')) {
                     var msg = $input.attr('data-vldr-required-msg-inside');
@@ -127,35 +160,36 @@
                         $input.attr('placeholder', msg);
                     }
                 }
-                //--------------------------------------
-                $input.focus(cbClear);
+                $input.off('focus', cbClear);
                 $input.trigger('vldrRequired');
-			} else {
-                $input.parent().find('.vldr-error-msg').remove();
+                $input.on('focus', cbClear);
+            } else {
+                removeMessage($input);
             }
         });
-        //Para checkboxes
+        // For checkboxes
         $form.find('input.vldr-required[type=checkbox]').not('.vldr-hidden').each(function () {
             var $cbx = $(this);
             if(!$cbx.is(':checked')){
                 incomplete = true;
                 $cbx.addClass("vldr-input-error");
-                //Tengo que fijarme si tiene mensaje y lo muestro
+                // Check if have error's message and show it
 			    var attr = $cbx.attr('data-vldr-required-msg');
 			    if ((typeof attr !== 'undefined' && attr !== false) && $cbx.parent().find('.vldr-error-msg').length == 0) {
                     var msg = $cbx.attr('data-vldr-required-msg');
                     $cbx.after($(document.createElement('div')).html(msg).addClass('vldr-error-msg'));
                 }
-                $cbx.trigger('vldrRequired');
-                $cbx.focus(cbClear);
+                $input.off('focus', cbClear);
+                $input.trigger('vldrRequired');
+                $input.on('focus', cbClear);
             }
 		});
-        //Radios
+        // Radios
         var names = [];
         $form.find('input.vldr-required[type=radio]').not('.vldr-hidden').each(function () {
             var name = this.name;
-            if(names.indexOf(name) == -1){
-                //No lo encontre
+            if (names.indexOf(name) == -1){
+                //Not found
                 names.push(name);
             }
 		});
@@ -188,7 +222,7 @@
                                     if(whereToInsert === 'prepend'){
                                         $input.parent().prepend($msg);
                                     } else {
-                                        //Este no puede ir inside, entonces AFTER
+                                        // If is not able to be INSIDE, must be AFTER
                                         $input.after($msg);
                                     }
                                 }
@@ -197,26 +231,26 @@
                     }
                 
                 });
-                $radios.trigger('vldrRequired');
-                $radios.click(cbClear);
+                $input.off('focus', cbClear);
+                $input.trigger('vldrRequired');
+                $input.on('focus', cbClear);
             }
-            
         }
-
 		if (incomplete) {
 			return false;
 		} else {
 			return true;
 		}
-	}
+    }
+    
     function vldrPatterns($form) {
 		var invalid = false;
 		$form.find("input.vldr-pattern").each(function () {
-			var $input = $(this);
+            var $input = $(this);
 			var attr = $input.attr('data-vldr-pattern');
 			if ($input.val() !== "" && (typeof attr !== 'undefined' && attr !== false)) {
-				//Si hay algo en su valor
-				var patron = $input.attr('data-vldr-pattern');
+				// value?
+                var patron = $input.attr('data-vldr-pattern');
 				var valor = $input.val();
                 try {
 				    var re = new RegExp(patron);
@@ -224,10 +258,9 @@
                     var re = null;
                 }
 				if (re != null && re.test(valor)) {
-                    //Aca no debería pasar nada
-                    $input.parent().find('.vldr-error-msg').remove();
+                    removeMessage($input);
 				}
-				else {
+                else {
 					invalid = true;
 					$input.addClass("vldr-input-error");
                     var whereToInsert = "after";
@@ -235,7 +268,6 @@
                     if ((typeof attrWhere !== 'undefined' && attrWhere !== false)) {
                         whereToInsert = attrWhere;
                     }
-                    //Tengo que fijarme si tiene mensaje y lo muestro
 			        var attr = $input.attr('data-vldr-pattern-msg');
 			        if ((typeof attr !== 'undefined' && attr !== false)) {
                         var msg = $input.attr('data-vldr-pattern-msg');
@@ -259,14 +291,9 @@
                             }
                         }
                     }
-					//Meto al campo el error
-					$input.focus(function () {
-						var $base = $(this);
-						if ($base.hasClass('vldr-input-error')) {
-							$base.removeClass('vldr-input-error');
-						}
-					});
-                    $input.trigger('vldrPatternInvalid');
+                    $input.off('focus', cbClear);
+                    $input.trigger('vldrRequired');
+                    $input.on('focus', cbClear);
 				}
 
 
@@ -277,13 +304,14 @@
 		} else {
 			return true;
 		}
-	}
+    }
+    
     function bindingEvents() {
-        if($('.vldr-submit').length == 0){
+        if ($('.vldr-submit').length == 0){
             var $form = $('form');
 		    validateOnSubmit($form, false);
         } else {
-            $('.vldr-submit').click(function(){
+            $('.vldr-submit').click(function() {
                 var $btn = $(this);
                 var $container = $btn.parents('.vldr-form');
                 if($container.length == 0) {
@@ -296,8 +324,8 @@
             triggerButton = event.target;
         });
     }
-    //Events
-    $(document).ready(function(){
+    // Events
+    $(document).ready(function() {
         bindingEvents();
 	});
 	$["vldr"] =  {
